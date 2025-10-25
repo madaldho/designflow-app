@@ -32,10 +32,48 @@ const MobileNav: React.FC = () => {
   const { data: unreadCount = 0 } = useUnreadNotificationsCount();
   const { data: projects = [] } = useProjects();
   
-  // Count projects that need review (for reviewer/approver)
-  const reviewCount = projects.filter(p => 
-    p.status === 'ready_for_review' || p.status === 'approved'
-  ).length;
+  // Count projects based on user role
+  let projectsBadge: number | undefined = undefined;
+  let reviewBadge: number | undefined = undefined;
+  
+  if (user) {
+    // For requester/admin: show total projects they created
+    if (user.role === 'requester' || user.role === 'admin') {
+      const myProjects = projects.filter(p => p.createdById === user.id);
+      projectsBadge = myProjects.length > 0 ? myProjects.length : undefined;
+    }
+    
+    // For designer: show projects assigned to them
+    if (user.role === 'designer_internal' || user.role === 'designer_external') {
+      const assignedProjects = projects.filter(p => p.assigneeId === user.id);
+      projectsBadge = assignedProjects.length > 0 ? assignedProjects.length : undefined;
+    }
+    
+    // For reviewer: show projects ready for review
+    if (user.role === 'reviewer' || user.role === 'admin') {
+      const reviewProjects = projects.filter(p => 
+        p.status === 'ready_for_review' && p.reviewerId === user.id
+      );
+      reviewBadge = reviewProjects.length > 0 ? reviewProjects.length : undefined;
+    }
+    
+    // For approver: show projects ready for approval
+    if (user.role === 'approver' || user.role === 'admin') {
+      const approvalProjects = projects.filter(p => 
+        p.status === 'approved' && p.approverId === user.id
+      );
+      // Combine with review badge for approvers
+      reviewBadge = approvalProjects.length > 0 ? approvalProjects.length : reviewBadge;
+    }
+    
+    // For percetakan: show projects in print queue
+    if (user.role === 'percetakan' || user.role === 'admin') {
+      const printProjects = projects.filter(p => 
+        p.status === 'approved_for_print' || p.status === 'in_print'
+      );
+      projectsBadge = printProjects.length > 0 ? printProjects.length : undefined;
+    }
+  }
 
   const navigation: NavItem[] = [
     {
@@ -49,7 +87,7 @@ const MobileNav: React.FC = () => {
       href: '/projects',
       icon: DocumentTextIcon,
       iconActive: DocumentTextIconSolid,
-      badge: projects.length > 0 ? projects.length : undefined,
+      badge: projectsBadge,
     },
     {
       name: 'Request',
@@ -62,7 +100,7 @@ const MobileNav: React.FC = () => {
       href: '/review-panel',
       icon: EyeIcon,
       roles: ['reviewer', 'approver', 'admin'],
-      badge: reviewCount > 0 ? reviewCount : undefined,
+      badge: reviewBadge,
     },
     {
       name: 'Profil',

@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { StatusBadge, MediaTypeBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { 
   ArrowLeftIcon,
   PencilSquareIcon,
@@ -20,6 +21,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { apiService } from '@/services/api.service';
+import { useQueryClient } from '@tanstack/react-query';
 
 const ProjectDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,8 +31,16 @@ const ProjectDetailPage: React.FC = () => {
   const { data: project, isLoading, error } = useProject(id);
   const updateProjectMutation = useUpdateProject();
   const deleteProjectMutation = useDeleteProject();
+  const queryClient = useQueryClient();
 
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadData, setUploadData] = useState({
+    fileUrl: '',
+    fileName: '',
+    notes: '',
+    isFinal: false,
+  });
+  const [uploading, setUploading] = useState(false);
 
   if (isLoading) {
     return (
@@ -72,6 +83,46 @@ const ProjectDetailPage: React.FC = () => {
       navigate('/projects');
     } catch (error) {
       console.error('Delete error:', error);
+    }
+  };
+
+  const handleUploadProof = async () => {
+    if (!uploadData.fileUrl.trim() || !uploadData.fileName.trim()) {
+      toast.error('URL file dan nama file harus diisi');
+      return;
+    }
+
+    // Validate URL format
+    try {
+      new URL(uploadData.fileUrl);
+    } catch {
+      toast.error('Format URL tidak valid');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      await apiService.uploadProof({
+        projectId: project.id,
+        fileUrl: uploadData.fileUrl,
+        fileName: uploadData.fileName,
+        fileSize: 0, // URL-based, size unknown
+        mimeType: uploadData.fileName.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg',
+        notes: uploadData.notes || undefined,
+        isFinal: uploadData.isFinal,
+      });
+
+      toast.success('Proof berhasil diupload');
+      setShowUploadModal(false);
+      setUploadData({ fileUrl: '', fileName: '', notes: '', isFinal: false });
+      
+      // Refresh project data
+      queryClient.invalidateQueries({ queryKey: ['project', project.id] });
+    } catch (error: any) {
+      console.error('Upload proof error:', error);
+      toast.error(error.message || 'Gagal upload proof');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -289,17 +340,93 @@ const ProjectDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Upload Modal Placeholder */}
+      {/* Upload Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4">
-            <div className="fixed inset-0 bg-gray-500 bg-opacity-75" onClick={() => setShowUploadModal(false)}></div>
-            <div className="relative bg-white rounded-lg p-6 max-w-md w-full">
-              <h3 className="text-lg font-medium mb-4">Upload Versi Baru</h3>
-              <p className="text-sm text-gray-600 mb-4">Fitur upload dalam pengembangan</p>
-              <Button onClick={() => setShowUploadModal(false)} fullWidth>
-                Tutup
-              </Button>
+            <div 
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" 
+              onClick={() => !uploading && setShowUploadModal(false)}
+            ></div>
+            
+            <div className="relative bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Upload Proof Desain</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    URL File <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="url"
+                    placeholder="https://example.com/design.pdf"
+                    value={uploadData.fileUrl}
+                    onChange={(e) => setUploadData({ ...uploadData, fileUrl: e.target.value })}
+                    disabled={uploading}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Link ke file desain (Google Drive, Dropbox, dll)
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nama File <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="Desain_v1.pdf"
+                    value={uploadData.fileName}
+                    onChange={(e) => setUploadData({ ...uploadData, fileName: e.target.value })}
+                    disabled={uploading}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Catatan (Opsional)
+                  </label>
+                  <textarea
+                    className="input w-full min-h-[80px] resize-none"
+                    placeholder="Catatan untuk reviewer..."
+                    value={uploadData.notes}
+                    onChange={(e) => setUploadData({ ...uploadData, notes: e.target.value })}
+                    disabled={uploading}
+                  />
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="isFinal"
+                    checked={uploadData.isFinal}
+                    onChange={(e) => setUploadData({ ...uploadData, isFinal: e.target.checked })}
+                    disabled={uploading}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="isFinal" className="ml-2 block text-sm text-gray-700">
+                    Tandai sebagai versi final
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowUploadModal(false)}
+                  disabled={uploading}
+                  fullWidth
+                >
+                  Batal
+                </Button>
+                <Button
+                  onClick={handleUploadProof}
+                  disabled={uploading || !uploadData.fileUrl.trim() || !uploadData.fileName.trim()}
+                  fullWidth
+                >
+                  {uploading ? 'Mengupload...' : 'Upload'}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { hasAnyRole } from '@/contexts/AuthContext';
+import { useProjects, useUnreadNotificationsCount } from '@/hooks';
 import { cn } from '@/lib/utils';
 import {
   HomeIcon,
@@ -51,6 +52,55 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  
+  // Get dynamic data from API
+  const { data: projects = [] } = useProjects();
+  const { data: unreadCount = 0 } = useUnreadNotificationsCount();
+  
+  // Calculate badge counts based on user role
+  let allProjectsCount: number | undefined = undefined;
+  let designerPanelCount: number | undefined = undefined;
+  let reviewPanelCount: number | undefined = undefined;
+  let printQueueCount: number | undefined = undefined;
+  
+  if (user) {
+    // All Projects - show total projects
+    allProjectsCount = projects.length > 0 ? projects.length : undefined;
+    
+    // Designer Panel - show projects assigned to designer
+    if (user.role === 'designer_internal' || user.role === 'designer_external') {
+      const assignedProjects = projects.filter(p => 
+        p.assignee?.id === user.id && 
+        ['draft', 'designing', 'ready_for_review'].includes(p.status)
+      );
+      designerPanelCount = assignedProjects.length > 0 ? assignedProjects.length : undefined;
+    }
+    
+    // Review Panel - show projects that need review/approval
+    if (user.role === 'reviewer' || user.role === 'admin') {
+      const reviewProjects = projects.filter(p => 
+        p.status === 'ready_for_review' && p.reviewer?.id === user.id
+      );
+      reviewPanelCount = reviewProjects.length > 0 ? reviewProjects.length : undefined;
+    }
+    
+    if (user.role === 'approver' || user.role === 'admin') {
+      const approvalProjects = projects.filter(p => 
+        p.status === 'approved' && p.approver?.id === user.id
+      );
+      const currentCount = reviewPanelCount || 0;
+      const totalCount = currentCount + approvalProjects.length;
+      reviewPanelCount = totalCount > 0 ? totalCount : undefined;
+    }
+    
+    // Print Queue - show projects ready for print or in print
+    if (user.role === 'designer_external' || user.role === 'admin') {
+      const printProjects = projects.filter(p => 
+        p.status === 'approved_for_print' || p.status === 'in_print'
+      );
+      printQueueCount = printProjects.length > 0 ? printProjects.length : undefined;
+    }
+  }
 
   const navigation: NavItem[] = [
     {
@@ -64,7 +114,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       href: '/projects',
       icon: DocumentTextIcon,
       iconActive: DocumentTextIconSolid,
-      badge: '12', // TODO: Get from API
+      badge: allProjectsCount,
     },
     {
       name: 'Request Desain',
@@ -77,21 +127,21 @@ const Sidebar: React.FC<SidebarProps> = ({
       href: '/designer-panel',
       icon: PencilSquareIcon,
       roles: ['designer_internal', 'designer_external'],
-      badge: '3', // TODO: Get from API
+      badge: designerPanelCount,
     },
     {
       name: 'Panel Review',
       href: '/review-panel',
       icon: EyeIcon,
       roles: ['reviewer', 'approver', 'admin'],
-      badge: '5', // TODO: Get from API
+      badge: reviewPanelCount,
     },
     {
       name: 'Antrian Cetak',
       href: '/print-queue',
       icon: PrinterIcon,
       roles: ['designer_external', 'admin'],
-      badge: '2', // TODO: Get from API
+      badge: printQueueCount,
     },
     {
       name: 'Admin Panel',

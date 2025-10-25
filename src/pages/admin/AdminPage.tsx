@@ -8,6 +8,8 @@ import {
 } from '@heroicons/react/24/outline';
 import UserManagement from './UserManagement';
 import InstitutionManagement from './InstitutionManagement';
+import ApprovalRoutesManagement from './ApprovalRoutesManagement';
+import SystemSettingsManagement from './SystemSettingsManagement';
 
 type AdminSection = 'overview' | 'users' | 'institutions' | 'approval_routes' | 'settings';
 
@@ -28,21 +30,9 @@ const AdminPage: React.FC = () => {
       case 'institutions':
         return <InstitutionManagement />;
       case 'approval_routes':
-        return (
-          <div className="text-center py-12">
-            <ClipboardDocumentListIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Approval Routes</h3>
-            <p className="text-gray-600">Fitur approval routes dalam pengembangan</p>
-          </div>
-        );
+        return <ApprovalRoutesManagement />;
       case 'settings':
-        return (
-          <div className="text-center py-12">
-            <Cog6ToothIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">System Settings</h3>
-            <p className="text-gray-600">Fitur system settings dalam pengembangan</p>
-          </div>
-        );
+        return <SystemSettingsManagement />;
       default:
         return (
           <div className="space-y-6">
