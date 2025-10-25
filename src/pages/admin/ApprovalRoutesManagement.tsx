@@ -128,7 +128,7 @@ const ApprovalRoutesManagement: React.FC = () => {
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {route.projectTypes.map((type) => (
-                      <Badge key={type} variant="outline">
+                      <Badge key={type} variant="gray">
                         {type}
                       </Badge>
                     ))}

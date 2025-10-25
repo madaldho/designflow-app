@@ -39,20 +39,20 @@ const MobileNav: React.FC = () => {
   if (user) {
     // For requester/admin: show total projects they created
     if (user.role === 'requester' || user.role === 'admin') {
-      const myProjects = projects.filter(p => p.createdById === user.id);
+      const myProjects = projects.filter(p => p.createdBy?.id === user.id);
       projectsBadge = myProjects.length > 0 ? myProjects.length : undefined;
     }
     
     // For designer: show projects assigned to them
     if (user.role === 'designer_internal' || user.role === 'designer_external') {
-      const assignedProjects = projects.filter(p => p.assigneeId === user.id);
+      const assignedProjects = projects.filter(p => p.assignee?.id === user.id);
       projectsBadge = assignedProjects.length > 0 ? assignedProjects.length : undefined;
     }
     
     // For reviewer: show projects ready for review
     if (user.role === 'reviewer' || user.role === 'admin') {
       const reviewProjects = projects.filter(p => 
-        p.status === 'ready_for_review' && p.reviewerId === user.id
+        p.status === 'ready_for_review' && p.reviewer?.id === user.id
       );
       reviewBadge = reviewProjects.length > 0 ? reviewProjects.length : undefined;
     }
@@ -60,18 +60,18 @@ const MobileNav: React.FC = () => {
     // For approver: show projects ready for approval
     if (user.role === 'approver' || user.role === 'admin') {
       const approvalProjects = projects.filter(p => 
-        p.status === 'approved' && p.approverId === user.id
+        p.status === 'approved' && p.approver?.id === user.id
       );
       // Combine with review badge for approvers
       reviewBadge = approvalProjects.length > 0 ? approvalProjects.length : reviewBadge;
     }
     
-    // For percetakan: show projects in print queue
-    if (user.role === 'percetakan' || user.role === 'admin') {
+    // Print queue is currently shown to admin (no explicit 'percetakan' role in types)
+    if (user.role === 'admin') {
       const printProjects = projects.filter(p => 
         p.status === 'approved_for_print' || p.status === 'in_print'
       );
-      projectsBadge = printProjects.length > 0 ? printProjects.length : undefined;
+      projectsBadge = printProjects.length > 0 ? printProjects.length : projectsBadge;
     }
   }
 

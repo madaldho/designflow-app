@@ -39,27 +39,37 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         
         <div className="relative">
           {leftIcon && (
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <div
+              className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"
+              aria-hidden
+            >
               {leftIcon}
             </div>
           )}
-          
+
+          {/*
+            Use inline style for padding to make sure icon spacing isn't accidentally
+            overridden by consumer className (tw-merge can reorder classes). Inline
+            style has higher specificity and prevents icon and input text overlap.
+          */}
           <input
             type={type}
             id={inputId}
             className={cn(
               'input block w-full transition-colors duration-200',
-              leftIcon && 'pl-10',
-              rightIcon && 'pr-10',
               error && 'border-danger-300 focus:ring-danger-500 focus:border-danger-500',
               className
             )}
+            style={{
+              paddingLeft: leftIcon ? '2.5rem' : undefined,
+              paddingRight: rightIcon ? '2.5rem' : undefined,
+            }}
             ref={ref}
             {...props}
           />
-          
+
           {rightIcon && (
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400">
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400" aria-hidden>
               {rightIcon}
             </div>
           )}
