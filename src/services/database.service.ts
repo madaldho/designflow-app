@@ -28,7 +28,7 @@ const DB_KEYS = {
 export const usersService = {
   // Get all users (only admin can see all)
   getAll: (currentUser: User): User[] => {
-    if (currentUser.roles[0] !== 'admin') {
+    if (currentUser.role !== 'admin') {
       throw new Error('Unauthorized: Only admin can view all users');
     }
     return JSON.parse(localStorage.getItem(DB_KEYS.USERS) || '[]');
@@ -40,7 +40,7 @@ export const usersService = {
     const user = users.find((u: User) => u.id === id);
     
     // Can view yourself or if admin
-    if (user && (user.id === currentUser.id || currentUser.roles[0] === 'admin')) {
+    if (user && (user.id === currentUser.id || currentUser.role === 'admin')) {
       return user;
     }
     
@@ -54,7 +54,7 @@ export const usersService = {
       id: Math.random().toString(36).substring(7),
       name: userData.name || '',
       email: userData.email || '',
-      roles: userData.roles || ['requester'],
+      role: userData.role || 'requester',
       status: 'active',
       institutions: [],
       createdAt: new Date(),
@@ -70,7 +70,7 @@ export const usersService = {
   // Update user
   update: (id: string, updates: Partial<User>, currentUser: User): User => {
     // Can only update yourself unless admin
-    if (id !== currentUser.id && currentUser.roles[0] !== 'admin') {
+    if (id !== currentUser.id && currentUser.role !== 'admin') {
       throw new Error('Unauthorized: Cannot update other users');
     }
 
@@ -194,7 +194,7 @@ export const projectsService = {
     const project = projectsService.getById(id, currentUser);
     if (!project) throw new Error('Project not found');
 
-    if (project.createdBy.id !== currentUser.id && currentUser.roles[0] !== 'admin') {
+    if (project.createdBy.id !== currentUser.id && currentUser.role !== 'admin') {
       throw new Error('Unauthorized: Cannot delete this project');
     }
 
@@ -216,7 +216,7 @@ export const projectsService = {
 
   // Assign designer
   assignDesigner: (projectId: string, designerId: string, currentUser: User): Project => {
-    if (currentUser.roles[0] !== 'admin' && currentUser.roles[0] !== 'approver') {
+    if (currentUser.role !== 'admin' && currentUser.role !== 'approver') {
       throw new Error('Unauthorized: Cannot assign projects');
     }
 
@@ -232,7 +232,7 @@ export const projectsService = {
 
   // Assign reviewer
   assignReviewer: (projectId: string, reviewerId: string, currentUser: User): Project => {
-    if (currentUser.roles[0] !== 'admin' && currentUser.roles[0] !== 'approver') {
+    if (currentUser.role !== 'admin' && currentUser.role !== 'approver') {
       throw new Error('Unauthorized: Cannot assign reviewers');
     }
 
@@ -252,7 +252,7 @@ export const projectsService = {
     if (!project) throw new Error('Project not found');
 
     // Validate status transitions based on role
-    const role = currentUser.roles[0];
+    const role = currentUser.role;
     
     if (role === 'designer_internal' || role === 'designer_external') {
       if (newStatus !== 'ready_for_review') {
@@ -290,7 +290,7 @@ export const activitiesService = {
         if (activity.userId === currentUser.id) return true;
         
         // Admin sees all
-        if (currentUser.roles[0] === 'admin') return true;
+        if (currentUser.role === 'admin') return true;
         
         // If related to project you have access to
         if (activity.projectId) {
@@ -361,7 +361,7 @@ export const statsService = {
     });
 
     // Count tasks based on role
-    const role = currentUser.roles[0];
+    const role = currentUser.role;
     if (role === 'reviewer') {
       stats.myTasks.pendingReview = projects.filter(
         (p: Project) => p.status === 'ready_for_review'

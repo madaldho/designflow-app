@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { hasAnyRole } from '@/contexts/AuthContext';
+import { useAuth, hasAnyRole } from '@/contexts/AuthContext';
+import { useUnreadNotificationsCount, useProjects } from '@/hooks';
 import { cn } from '@/lib/utils';
 import {
   HomeIcon,
@@ -27,6 +27,15 @@ interface NavItem {
 const MobileNav: React.FC = () => {
   const { user } = useAuth();
   const location = useLocation();
+  
+  // Get dynamic badge counts from API
+  const { data: unreadCount = 0 } = useUnreadNotificationsCount();
+  const { data: projects = [] } = useProjects();
+  
+  // Count projects that need review (for reviewer/approver)
+  const reviewCount = projects.filter(p => 
+    p.status === 'ready_for_review' || p.status === 'approved'
+  ).length;
 
   const navigation: NavItem[] = [
     {
@@ -40,7 +49,7 @@ const MobileNav: React.FC = () => {
       href: '/projects',
       icon: DocumentTextIcon,
       iconActive: DocumentTextIconSolid,
-      badge: '12', // TODO: Get from API
+      badge: projects.length > 0 ? projects.length : undefined,
     },
     {
       name: 'Request',
@@ -53,7 +62,7 @@ const MobileNav: React.FC = () => {
       href: '/review-panel',
       icon: EyeIcon,
       roles: ['reviewer', 'approver', 'admin'],
-      badge: '5', // TODO: Get from API
+      badge: reviewCount > 0 ? reviewCount : undefined,
     },
     {
       name: 'Profil',

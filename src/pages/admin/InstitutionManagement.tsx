@@ -80,7 +80,7 @@ const InstitutionManagement: React.FC = () => {
       if (editingInstitution) {
         await updateMutation.mutateAsync({
           id: editingInstitution.id,
-          data: formData,
+          updates: formData,
         });
         toast.success('Lembaga berhasil diupdate!');
       } else {

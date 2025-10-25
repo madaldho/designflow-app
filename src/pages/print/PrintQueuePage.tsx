@@ -13,11 +13,12 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { formatDate } from '@/lib/utils';
-import { useProjects } from '@/hooks';
+import { useProjects, useUpdateProject } from '@/hooks';
 import toast from 'react-hot-toast';
 
 const PrintQueuePage: React.FC = () => {
   const { data: projects = [], isLoading, refetch } = useProjects();
+  const updateProject = useUpdateProject();
   
   const [showPickupModal, setShowPickupModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<any>(null);
@@ -26,6 +27,33 @@ const PrintQueuePage: React.FC = () => {
     picName: '',
     notes: '',
   });
+
+  // Handle print status updates
+  const handleStartPrint = async (projectId: string) => {
+    try {
+      await updateProject.mutateAsync({
+        id: projectId,
+        updates: { status: 'in_print' }
+      });
+      toast.success('Status diubah ke Sedang Cetak');
+      refetch();
+    } catch (error) {
+      toast.error('Gagal mengubah status');
+    }
+  };
+
+  const handleCompletePrint = async (projectId: string) => {
+    try {
+      await updateProject.mutateAsync({
+        id: projectId,
+        updates: { status: 'ready' }
+      });
+      toast.success('Status diubah ke Siap Diambil');
+      refetch();
+    } catch (error) {
+      toast.error('Gagal mengubah status');
+    }
+  };
 
   // Filter approved projects
   const approvedProjects = projects.filter(
@@ -126,7 +154,8 @@ const PrintQueuePage: React.FC = () => {
               size="sm" 
               variant="outline" 
               className="w-full sm:w-auto"
-              onClick={() => toast('Fitur dalam pengembangan')}
+              onClick={() => handleStartPrint(project.id)}
+              loading={updateProject.isPending}
             >
               <PrinterIcon className="w-4 h-4 mr-2 shrink-0" />
               <span className="truncate">Mulai Cetak</span>
@@ -138,7 +167,8 @@ const PrintQueuePage: React.FC = () => {
               size="sm" 
               variant="success" 
               className="w-full sm:w-auto"
-              onClick={() => toast('Fitur dalam pengembangan')}
+              onClick={() => handleCompletePrint(project.id)}
+              loading={updateProject.isPending}
             >
               <CheckCircleIcon className="w-4 h-4 mr-2 shrink-0" />
               <span className="truncate">Tandai Selesai</span>
@@ -301,7 +331,9 @@ const PrintQueuePage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setShowPickupModal(false)}
-                      className="text-gray-400 hover:text-gray-500"
+                      className="text-gray-400 hover:text-gray-500 transition-colors"
+                      aria-label="Tutup modal"
+                      title="Tutup"
                     >
                       <XMarkIcon className="w-6 h-6" />
                     </button>

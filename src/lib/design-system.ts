@@ -286,15 +286,15 @@ export const components = {
 
 // Helper Functions
 export function getStatusColor(status: string) {
-  return statusColors[status] || statusColors.draft;
+  return statusColors[status as keyof typeof statusColors] || statusColors.draft;
 }
 
 export function getStatusLabel(status: string) {
-  return statusLabels[status] || status;
+  return statusLabels[status as keyof typeof statusLabels] || status;
 }
 
 export function getRoleColor(role: string) {
-  return roleColors[role] || roleColors.requester;
+  return roleColors[role as keyof typeof roleColors] || roleColors.requester;
 }
 
 export function getRoleLabel(role: string) {

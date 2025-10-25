@@ -16,9 +16,12 @@ export interface Institution {
   id: string;
   name: string;
   type: 'pondok' | 'yayasan' | 'smp' | 'sma' | 'smk' | 'lainnya';
+  description?: string;
   address?: string;
   phone?: string;
   email?: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
 
 export type UserRole = 

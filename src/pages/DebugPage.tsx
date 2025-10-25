@@ -153,7 +153,7 @@ const DebugPage: React.FC = () => {
       case 'error':
         return <Badge variant="danger">ERROR</Badge>;
       default:
-        return <Badge variant="secondary">Checking...</Badge>;
+        return <Badge variant="default">Checking...</Badge>;
     }
   };
 
