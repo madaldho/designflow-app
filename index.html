@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="id-ID">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="description" content="Platform end-to-end untuk mengelola alur kerja desain dari request hingga serah terima hasil cetak" />
+    <meta name="keywords" content="desain, review, cetak, workflow, pondok, yayasan, sekolah" />
+    <meta name="author" content="DesignFlow Team" />
+    
+    <!-- Apple Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="DesignFlow" />
+    
+    <!-- Microsoft Meta Tags -->
+    <meta name="msapplication-TileColor" content="#2563eb" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="DesignFlow - Sistem Desain Review Cetak" />
+    <meta property="og:description" content="Platform end-to-end untuk mengelola alur kerja desain dari request hingga serah terima hasil cetak" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://designflow.app" />
+    <meta property="og:image" content="/og-image.png" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="DesignFlow - Sistem Desain Review Cetak" />
+    <meta name="twitter:description" content="Platform end-to-end untuk mengelola alur kerja desain dari request hingga serah terima hasil cetak" />
+    <meta name="twitter:image" content="/twitter-card.png" />
+    
+    <!-- Manifest and Icons -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    
+    <!-- Preconnect for better performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <title>DesignFlow - Sistem Desain Review Cetak</title>
+    
+    <!-- Prevent fouc -->
+    <style>
+      body {
+        opacity: 0;
+        transition: opacity 0.3s ease-in;
+      }
+      body.loaded {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Remove loading class when page is loaded
+      window.addEventListener('load', function() {
+        document.body.classList.add('loaded');
+      });
+    </script>
+  </body>
+</html>
